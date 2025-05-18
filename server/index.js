@@ -13,3 +13,6 @@ app.use('/api/auth', authRouter)
 app.listen(process.env.PORT, () => {
      console.log(`Server is running on port ${process.env.PORT}`)
 })
+
+const workHourRouter = require('./routes/work_hours');
+app.use('/api/work-hours', workHourRouter);
