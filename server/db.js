@@ -1,10 +1,20 @@
-const mysql = require('mysql2/promise');
+import sql from 'mssql';
 
-const pool = mysql.createPool({
-   host: 'localhost',
-   user: 'root',
-   password: 'your_msql_password',
-   database: 'timetrackx'
-});
+const config = {
+  user: 'agnesa@email',              
+  password: 'agnesa12',   
+  server: 'localhost',     
+  database: 'timetrackx',
+  options: {
+    encrypt: false,
+    trustServerCertificate: true,
+  }
+};
 
-module.exports = pool;
+export const pool = new sql.ConnectionPool(config)
+  .connect()
+  .then(pool => {
+    console.log("✅ Connected to SQL Server");
+    return pool;
+  })
+  .catch(err => console.log("❌ Database connection failed", err));
