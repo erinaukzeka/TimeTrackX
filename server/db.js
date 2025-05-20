@@ -3,7 +3,7 @@ import sql from 'mssql';
 const config = {
   user: 'agnesa@email',              
   password: 'agnesa12',   
-  server: 'localhost',     
+  server: 'DESKTOP-NQRUPKS\MSSQLSERVER',     
   database: 'timetrackx',
   options: {
     encrypt: false,
