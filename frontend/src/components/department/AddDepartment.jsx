@@ -47,5 +47,7 @@ const AddDepartment = () => {
                 <button type="submit" className="w-full mt-6 bg-teal-600 hover:bg-teal-700 text-white font-bold py-2 px-4 rounded">Add Department</button>
             </form>
         </div>
-    )
-} 
+    );
+};
+
+export default AddDepartment

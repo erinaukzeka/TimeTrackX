@@ -1,16 +1,12 @@
 /** @type {import('tailwindcss').Config} */
-export default {
+module.exports = {
+  darkMode: 'media',
   content: [
     "./index.html",
-    "./src/**/*.{js,ts,jsx,tsx}",
+    "./src/**/*.{js,ts,jsx,tsx}"
   ],
   theme: {
-    extend: {
-      fontFamily:{
-        "pacific" : ["Pacifico", 'sans-serif']
-      }
-    },
+    extend: {},
   },
-  plugins: [],
-}
-
+  plugins: []
+};
