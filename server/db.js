@@ -1,10 +1,11 @@
 import sql from 'mssql';
 
 const config = {
-  user: 'agnesa@email',              
-  password: 'agnesa12',   
-  server: 'DESKTOP-NQRUPKS\MSSQLSERVER',     
+  user: 'sa',              
+  password: 'admin123',   
+  server: 'localhost',     
   database: 'timetrackx',
+  port: 1433,
   options: {
     encrypt: false,
     trustServerCertificate: true,
