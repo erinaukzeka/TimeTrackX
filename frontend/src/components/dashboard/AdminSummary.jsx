@@ -8,7 +8,7 @@ const AdminSummary = () => {
             <h3 className='text-2xl font-bold'>Dashboard Overview</h3>
             <div className='grid grid-cols-1 md:grid-cols-3 gap-6 mt-6'>
                 <SummaryCard icon={<FaUsers />} text="Total Employees" number={13}  color="bg-teal-600" />
-                <SummaryCard icon={<FaBuilding />} text="Total Dpartments" number={5} color="bg-yellow-600" />
+                <SummaryCard icon={<FaBuilding />} text="Total Departments" number={5} color="bg-yellow-600" />
                 <SummaryCard icon={<FaMoneyBillWave />} text="Monthly Salary" number="$654" color="bg-red-600" />
             </div>
 
