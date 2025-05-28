@@ -6,8 +6,8 @@ import EmployeeDashboard from './pages/EmployeeDashboard';
 import PrivateRoutes from './utils/PrivateRoutes';
 import RoleBaseRoutes from './utils/RoleBaseRoutes';
 import AdminSummary from './components/admin/dashboard/AdminSummary';
-import DepartmentList from './components/department/DepartmentList';
-import AddDepartment from './components/department/AddDepartment'; // Shto importin
+import DepartmentList from './components/admin/department/DepartmentList';
+import AddDepartment from './components/admin/department/AddDepartment'; 
 
 function App() {
   return (

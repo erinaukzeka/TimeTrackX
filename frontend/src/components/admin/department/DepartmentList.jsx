@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react"
 import {Link} from 'react-router-dom'
 import DataTable from 'react-data-table-component'
-import { columns, DepartmentButtons } from "../../../utils/DepartmentHelper"
 
 const DepartmentList = () => {
     const [departments, setDepartments] = useState(null)

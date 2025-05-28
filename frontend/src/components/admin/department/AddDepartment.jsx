@@ -25,7 +25,7 @@ const AddDepartment = () => {
                 navigate("/admin-dashboard/departments")
             }
         }catch(error){
-            if(error.response && error.response.data.success){
+            if(error.response && !error.response.data.success){
                 alert(error.response.data.error)
             }
         }
