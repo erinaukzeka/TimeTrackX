@@ -1,9 +1,11 @@
 import express from 'express';
 import cors from 'cors';
-import authRouter from './routes/auth.js';
+import authRoutes from './routes/auth.js';
 import { pool } from './db.js';  
 import dotenv from 'dotenv';
-import departmentRouter from './routes/departments.js'
+import employeeRoutes from './routes/employee.js';
+import workHoursRoutes from './routes/work_hours.js';
+import departmentRoutes from './routes/departments.js';
 
 dotenv.config(); 
 
@@ -11,8 +13,10 @@ const app = express();
 
 app.use(cors());
 app.use(express.json());
-app.use('/api/auth', authRouter);
-app.use('/api/departments', departmentRouter);
+app.use('/api/auth', authRoutes);
+app.use('/api/employees', employeeRoutes);
+app.use('/api/work-hours', workHoursRoutes);
+app.use('/api/departments', departmentRoutes);
 
 
 const PORT = process.env.PORT || 5000;

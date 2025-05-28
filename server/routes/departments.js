@@ -1,28 +1,34 @@
-import express from 'express'
+import express from 'express';
+import { pool } from '../db.js';
+import sql from 'mssql';
 
 const router = express.Router();
-const db = require('../db');
 
 // GET 
 router.get('/', async (req, res) => {
   try {
-    const [rows] = await db.query('SELECT * FROM departments');
-    res.json(rows);
+    const conn = await pool;
+    const result = await conn.request().query('SELECT * FROM departments');
+    res.json(result.recordset);
   } catch (err) {
     console.error(err);
     res.status(500).send('Gabim gjatë marrjes së departamenteve');
   }
 });
 
-// POST 
+// POST
 router.post('/', async (req, res) => {
   const { name } = req.body;
   try {
-    const [result] = await db.query(
-      'INSERT INTO departments (name) VALUES (?)',
-      [name]
-    );
-    res.status(201).json({ message: 'Departamenti u shtua me sukses', id: result.insertId });
+    const conn = await pool;
+    const result = await conn.request()
+      .input('name', sql.VarChar, name)
+      .query('INSERT INTO departments (name) VALUES (@name)');
+
+    res.status(201).json({
+      message: 'Departamenti u shtua me sukses',
+      rowsAffected: result.rowsAffected[0]
+    });
   } catch (err) {
     console.error(err);
     res.status(500).send('Gabim gjatë shtimit të departamentit');
@@ -33,11 +39,14 @@ router.post('/', async (req, res) => {
 router.put('/:id', async (req, res) => {
   const { id } = req.params;
   const { name } = req.body;
+
   try {
-    await db.query(
-      'UPDATE departments SET name = ? WHERE id = ?',
-      [name, id]
-    );
+    const conn = await pool;
+    await conn.request()
+      .input('id', sql.Int, id)
+      .input('name', sql.VarChar, name)
+      .query('UPDATE departments SET name = @name WHERE id = @id');
+
     res.json({ message: 'Departamenti u përditësua me sukses' });
   } catch (err) {
     console.error(err);
@@ -48,8 +57,13 @@ router.put('/:id', async (req, res) => {
 // DELETE 
 router.delete('/:id', async (req, res) => {
   const { id } = req.params;
+
   try {
-    await db.query('DELETE FROM departments WHERE id = ?', [id]);
+    const conn = await pool;
+    await conn.request()
+      .input('id', sql.Int, id)
+      .query('DELETE FROM departments WHERE id = @id');
+
     res.json({ message: 'Departamenti u fshi me sukses' });
   } catch (err) {
     console.error(err);
@@ -57,4 +71,4 @@ router.delete('/:id', async (req, res) => {
   }
 });
 
-module.exports = router;
+export default router;

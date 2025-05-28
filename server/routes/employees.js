@@ -1,42 +1,50 @@
-const express = require('express');
-const router = express.Router();
-const db = require('../db');
+import express from 'express';
+import { pool } from '../db.js';
+import sql from 'mssql';
 
-// GET all
+const router = express.Router();
+
+// GET
 router.get('/', async (req, res) => {
   try {
-    const [rows] = await db.query('SELECT * FROM employees');
-    res.json(rows);
+    const conn = await pool;
+    const result = await conn.request().query('SELECT * FROM employee');
+    res.json(result.recordset);
   } catch (err) {
     console.error(err);
-    res.status(500).send('Gabim gjate marrjes se punetoreve');
+    res.status(500).send('Gabim gjatë marrjes së punëtorëve');
   }
 });
 
-// POST
+// POST 
 router.post('/', async (req, res) => {
-  const { first_name, last_name, email, department_id } = req.body;
+  const { name, position, department_id } = req.body;
   try {
-    const [result] = await db.query(
-      'INSERT INTO employees (first_name, last_name, email, department_id) VALUES (?, ?, ?, ?)',
-      [first_name, last_name, email, department_id]
-    );
-    res.status(201).json({ message: 'Punëtori u shtua me sukses', id: result.insertId });
+    const conn = await pool;
+    await conn.request()
+      .input('name', sql.VarChar, name)
+      .input('position', sql.VarChar, position)
+      .input('department_id', sql.Int, department_id)
+      .query('INSERT INTO employee (name, position, department_id) VALUES (@name, @position, @department_id)');
+    res.status(201).json({ message: 'Punëtori u shtua me sukses' });
   } catch (err) {
     console.error(err);
     res.status(500).send('Gabim gjatë shtimit të punëtorit');
   }
 });
 
-// PUT
+// PUT 
 router.put('/:id', async (req, res) => {
   const { id } = req.params;
-  const { first_name, last_name, email, department_id } = req.body;
+  const { name, position, department_id } = req.body;
   try {
-    await db.query(
-      'UPDATE employees SET first_name = ?, last_name = ?, email = ?, department_id = ? WHERE id = ?',
-      [first_name, last_name, email, department_id, id]
-    );
+    const conn = await pool;
+    await conn.request()
+      .input('id', sql.Int, id)
+      .input('name', sql.VarChar, name)
+      .input('position', sql.VarChar, position)
+      .input('department_id', sql.Int, department_id)
+      .query('UPDATE employee SET name = @name, position = @position, department_id = @department_id WHERE id = @id');
     res.json({ message: 'Punëtori u përditësua me sukses' });
   } catch (err) {
     console.error(err);
@@ -44,11 +52,12 @@ router.put('/:id', async (req, res) => {
   }
 });
 
-// DELETE
+// DELETE 
 router.delete('/:id', async (req, res) => {
   const { id } = req.params;
   try {
-    await db.query('DELETE FROM employees WHERE id = ?', [id]);
+    const conn = await pool;
+    await conn.request().input('id', sql.Int, id).query('DELETE FROM employee WHERE id = @id');
     res.json({ message: 'Punëtori u fshi me sukses' });
   } catch (err) {
     console.error(err);
@@ -56,4 +65,4 @@ router.delete('/:id', async (req, res) => {
   }
 });
 
-module.exports = router;
+export default router;
