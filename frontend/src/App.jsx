@@ -23,12 +23,13 @@ function App() {
             </RoleBaseRoutes>
           </PrivateRoutes>
         }>
-          <Route index element={<AdminSummary />} />
-          <Route path="departments" element={<DepartmentList />} />
-          <Route path="add-department" element={<AddDepartment />} />
-        </Route>
+          <Route index element={<AdminSummary />}></Route>
 
-        <Route path="/employee-dashboard" element={<EmployeeDashboard />} />
+          <Route path="/admin-dashboard/departments" element={<DepartmentList />}></Route>
+          <Route path="/admin-dashboard/add-department" element={<AddDepartment />}></Route>
+
+        </Route>
+        <Route path="/employee-dashboard" element={<EmployeeDashboard />}></Route>
       </Routes>
     </BrowserRouter>
   );
