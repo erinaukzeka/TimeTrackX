@@ -17,6 +17,9 @@ const AdminSidebar = () => {
                 <Link to="/admin-dashboard/statistics/employee-hours" className='block px-4 py-2 hover:bg-gray-700'>
                     Employee Hours Statistics
                 </Link>
+                <Link to="/admin-dashboard/statistics/checkin-trends" className='block px-4 py-2 hover:bg-gray-700'>
+                    Check-in/out Trends
+                </Link>
             </nav>
         </div>
     )
