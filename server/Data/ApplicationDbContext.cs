@@ -14,6 +14,7 @@ namespace TimeTrackX.API.Data
         public DbSet<TimeEntry> TimeEntries { get; set; }
         public DbSet<Project> Projects { get; set; }
         public DbSet<ProjectTask> Tasks { get; set; }
+        public DbSet<Shift> Shifts { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -49,6 +50,15 @@ namespace TimeTrackX.API.Data
                 .WithMany()
                 .HasForeignKey(t => t.AssignedUserId)
                 .OnDelete(DeleteBehavior.SetNull);
+
+            // Configure Shift default values
+            modelBuilder.Entity<Shift>()
+                .Property(s => s.IsActive)
+                .HasDefaultValue(true);
+
+            modelBuilder.Entity<Shift>()
+                .Property(s => s.CreatedAt)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
         }
     }
 } 
