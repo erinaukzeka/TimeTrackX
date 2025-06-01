@@ -3,18 +3,23 @@ using Microsoft.EntityFrameworkCore;
 using TimeTrackX.API.Data;
 using TimeTrackX.API.Models;
 using TimeTrackX.API.DTOs;
+using TimeTrackX.API.Services;
+using Microsoft.AspNetCore.Authorization;
 
 namespace TimeTrackX.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class TimeEntriesController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
+        private readonly ShiftValidationService _shiftValidation;
 
-        public TimeEntriesController(ApplicationDbContext context)
+        public TimeEntriesController(ApplicationDbContext context, ShiftValidationService shiftValidation)
         {
             _context = context;
+            _shiftValidation = shiftValidation;
         }
 
         // GET: api/TimeEntries
@@ -66,6 +71,20 @@ namespace TimeTrackX.API.Controllers
         [HttpPost]
         public async Task<ActionResult<TimeEntryResponseDTO>> CreateTimeEntry(CreateTimeEntryDTO dto)
         {
+            // Get the current user's ID from the token
+            var userId = int.Parse(User.FindFirst("sub")?.Value ?? "0");
+            if (userId == 0)
+            {
+                return Unauthorized();
+            }
+
+            // Validate against scheduled shift
+            var validation = await _shiftValidation.ValidateTimeEntry(userId, dto.StartTime);
+            if (!validation.IsValid)
+            {
+                return BadRequest(validation.ErrorMessage);
+            }
+
             var timeEntry = new TimeEntry
             {
                 StartTime = dto.StartTime,
@@ -73,7 +92,7 @@ namespace TimeTrackX.API.Controllers
                 Description = dto.Description,
                 ProjectId = dto.ProjectId,
                 TaskId = dto.TaskId,
-                UserId = 1 // TODO: Get from authenticated user
+                UserId = userId
             };
 
             _context.TimeEntries.Add(timeEntry);
@@ -100,6 +119,24 @@ namespace TimeTrackX.API.Controllers
             if (timeEntry == null)
             {
                 return NotFound();
+            }
+
+            // Verify the user owns this time entry or is an admin
+            var userId = int.Parse(User.FindFirst("sub")?.Value ?? "0");
+            if (timeEntry.UserId != userId && !User.IsInRole("Admin"))
+            {
+                return Forbid();
+            }
+
+            // Validate against scheduled shift
+            var validation = await _shiftValidation.ValidateTimeEntryUpdate(
+                timeEntry.UserId,
+                dto.StartTime,
+                dto.EndTime);
+
+            if (!validation.IsValid)
+            {
+                return BadRequest(validation.ErrorMessage);
             }
 
             // Only update provided fields
@@ -135,7 +172,23 @@ namespace TimeTrackX.API.Controllers
                 return NotFound();
             }
 
-            timeEntry.EndTime = DateTime.UtcNow;
+            // Verify the user owns this time entry or is an admin
+            var userId = int.Parse(User.FindFirst("sub")?.Value ?? "0");
+            if (timeEntry.UserId != userId && !User.IsInRole("Admin"))
+            {
+                return Forbid();
+            }
+
+            var stopTime = DateTime.UtcNow;
+            
+            // Validate against scheduled shift
+            var validation = await _shiftValidation.ValidateTimeEntry(timeEntry.UserId, stopTime);
+            if (!validation.IsValid)
+            {
+                return BadRequest(validation.ErrorMessage);
+            }
+
+            timeEntry.EndTime = stopTime;
             await _context.SaveChangesAsync();
 
             return NoContent();
@@ -149,6 +202,13 @@ namespace TimeTrackX.API.Controllers
             if (timeEntry == null)
             {
                 return NotFound();
+            }
+
+            // Verify the user owns this time entry or is an admin
+            var userId = int.Parse(User.FindFirst("sub")?.Value ?? "0");
+            if (timeEntry.UserId != userId && !User.IsInRole("Admin"))
+            {
+                return Forbid();
             }
 
             _context.TimeEntries.Remove(timeEntry);

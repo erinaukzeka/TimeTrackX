@@ -30,6 +30,9 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 // Register JwtService
 builder.Services.AddScoped<JwtService>();
 
+// Register ShiftValidationService
+builder.Services.AddScoped<ShiftValidationService>();
+
 // Configure CORS
 builder.Services.AddCors(options =>
 {

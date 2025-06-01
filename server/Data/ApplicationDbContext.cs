@@ -25,6 +25,12 @@ namespace TimeTrackX.API.Data
                 .HasMany(u => u.AssignedProjects)
                 .WithMany(p => p.AssignedUsers);
 
+            // Configure many-to-many relationship between Users and Shifts
+            modelBuilder.Entity<User>()
+                .HasMany(u => u.AssignedShifts)
+                .WithMany(s => s.AssignedEmployees)
+                .UsingEntity(j => j.ToTable("UserShifts"));
+
             // Configure TimeEntry relationships
             modelBuilder.Entity<TimeEntry>()
                 .HasOne(t => t.User)

@@ -33,6 +33,9 @@ namespace TimeTrackX.API.Models
 
         public DateTime? UpdatedAt { get; set; }
 
+        // Navigation property for assigned employees
+        public ICollection<User> AssignedEmployees { get; set; } = new List<User>();
+
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
         {
             if (EndTime <= StartTime)

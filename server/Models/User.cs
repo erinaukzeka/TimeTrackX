@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Security.Cryptography;
 using System.Text;
@@ -39,6 +41,7 @@ namespace TimeTrackX.API.Models
         // Navigation properties
         public ICollection<Project> AssignedProjects { get; set; }
         public ICollection<TimeEntry> TimeEntries { get; set; }
+        public ICollection<Shift> AssignedShifts { get; set; } = new List<Shift>();
 
         public void SetPassword(string password)
         {
