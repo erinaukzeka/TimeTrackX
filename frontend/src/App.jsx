@@ -7,7 +7,8 @@ import PrivateRoutes from './utils/PrivateRoutes';
 import RoleBaseRoutes from './utils/RoleBaseRoutes';
 import AdminSummary from './components/admin/dashboard/AdminSummary';
 import DepartmentList from './components/admin/department/DepartmentList';
-import AddDepartment from './components/admin/department/AddDepartment'; 
+import AddDepartment from './components/admin/department/AddDepartment';
+import EmployeeHoursStatistics from './components/admin/statistics/EmployeeHoursStatistics';
 
 function App() {
   return (
@@ -24,10 +25,9 @@ function App() {
           </PrivateRoutes>
         }>
           <Route index element={<AdminSummary />}></Route>
-
           <Route path="/admin-dashboard/departments" element={<DepartmentList />}></Route>
           <Route path="/admin-dashboard/add-department" element={<AddDepartment />}></Route>
-
+          <Route path="/admin-dashboard/statistics/employee-hours" element={<EmployeeHoursStatistics />}></Route>
         </Route>
         <Route path="/employee-dashboard" element={<EmployeeDashboard />}></Route>
       </Routes>
