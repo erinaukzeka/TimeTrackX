@@ -13,6 +13,9 @@ namespace TimeTrackX.API.Controllers
     public class StatisticsController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
+        private readonly TimeSpan _lateThreshold = TimeSpan.FromHours(9); // 9:00 AM
+        private readonly TimeSpan _absenceThreshold = TimeSpan.FromHours(12); // 12:00 PM
+        private readonly string[] _validTimeRanges = new[] { "week", "month", "year" };
 
         public StatisticsController(ApplicationDbContext context)
         {
@@ -201,6 +204,159 @@ namespace TimeTrackX.API.Controllers
             {
                 return StatusCode(500, new { success = false, error = "Error retrieving check-in/out trends" });
             }
+        }
+
+        [HttpGet("attendance")]
+        public async Task<ActionResult<object>> GetAttendanceStatistics([FromQuery] string timeRange = "month")
+        {
+            try
+            {
+                // Validate time range
+                if (!_validTimeRanges.Contains(timeRange.ToLower()))
+                {
+                    return BadRequest(new { success = false, error = "Invalid time range. Valid values are: week, month, year" });
+                }
+
+                var startDate = timeRange.ToLower() switch
+                {
+                    "week" => DateTime.UtcNow.AddDays(-7),
+                    "month" => DateTime.UtcNow.AddMonths(-1),
+                    "year" => DateTime.UtcNow.AddYears(-1),
+                    _ => throw new ArgumentException("Invalid time range")
+                };
+
+                // Validate if we have any users
+                if (!await _context.Users.AnyAsync())
+                {
+                    return Ok(new
+                    {
+                        success = true,
+                        attendance = new
+                        {
+                            lateArrivals = new List<object>(),
+                            absences = new List<object>(),
+                            summaryByEmployee = new List<object>()
+                        }
+                    });
+                }
+
+                var timeEntries = await _context.TimeEntries
+                    .Include(t => t.User)
+                    .Where(t => t.StartTime >= startDate)
+                    .ToListAsync();
+
+                // Group entries by date for trends
+                var lateArrivals = timeEntries
+                    .Where(t => t.StartTime.TimeOfDay > _lateThreshold)
+                    .GroupBy(t => t.StartTime.Date)
+                    .Select(g => new { date = g.Key.ToString("MM/dd"), count = g.Count() })
+                    .OrderBy(x => DateTime.Parse(x.date))
+                    .ToList();
+
+                // Calculate absences (no time entries for a workday)
+                var workDays = GetWorkdaysBetween(startDate, DateTime.UtcNow);
+                
+                if (!workDays.Any())
+                {
+                    return Ok(new
+                    {
+                        success = true,
+                        attendance = new
+                        {
+                            lateArrivals = new List<object>(),
+                            absences = new List<object>(),
+                            summaryByEmployee = new List<object>()
+                        }
+                    });
+                }
+
+                var employeeEntries = timeEntries
+                    .GroupBy(t => new { t.UserId, Date = t.StartTime.Date })
+                    .Select(g => new { g.Key.UserId, g.Key.Date })
+                    .ToList();
+
+                var absences = workDays
+                    .SelectMany(date => _context.Users.Select(u => new { UserId = u.Id, Date = date }))
+                    .Where(x => !employeeEntries.Any(e => e.UserId == x.UserId && e.Date == x.Date))
+                    .GroupBy(x => x.Date)
+                    .Select(g => new { date = g.Key.ToString("MM/dd"), count = g.Count() })
+                    .OrderBy(x => DateTime.Parse(x.date))
+                    .ToList();
+
+                // Calculate summary by employee
+                var employeeSummary = await _context.Users
+                    .Select(user => new
+                    {
+                        userId = user.Id,
+                        userName = user.Username,
+                        timeEntries = timeEntries.Where(t => t.UserId == user.Id).ToList()
+                    })
+                    .ToListAsync();
+
+                var summaryByEmployee = employeeSummary.Select(e =>
+                {
+                    var totalWorkDays = workDays.Count;
+                    var daysPresent = e.timeEntries
+                        .Select(t => t.StartTime.Date)
+                        .Distinct()
+                        .Count();
+                    var lateCount = e.timeEntries.Count(t => t.StartTime.TimeOfDay > _lateThreshold);
+                    var absenceCount = totalWorkDays - daysPresent;
+                    var attendanceRate = totalWorkDays > 0 ? ((double)daysPresent / totalWorkDays) * 100 : 0;
+
+                    return new
+                    {
+                        userId = e.userId,
+                        userName = e.userName,
+                        lateCount = lateCount,
+                        absenceCount = absenceCount,
+                        attendanceRate = Math.Round(attendanceRate, 1),
+                        status = GetAttendanceStatus(attendanceRate, lateCount)
+                    };
+                }).ToList();
+
+                return Ok(new
+                {
+                    success = true,
+                    attendance = new
+                    {
+                        lateArrivals = lateArrivals,
+                        absences = absences,
+                        summaryByEmployee = summaryByEmployee
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                // Log the exception details here
+                return StatusCode(500, new { success = false, error = "An error occurred while retrieving attendance statistics" });
+            }
+        }
+
+        private List<DateTime> GetWorkdaysBetween(DateTime start, DateTime end)
+        {
+            var workDays = new List<DateTime>();
+            var current = start.Date;
+            while (current <= end.Date)
+            {
+                if (current.DayOfWeek != DayOfWeek.Saturday && current.DayOfWeek != DayOfWeek.Sunday)
+                {
+                    workDays.Add(current);
+                }
+                current = current.AddDays(1);
+            }
+            return workDays;
+        }
+
+        private string GetAttendanceStatus(double attendanceRate, int lateCount)
+        {
+            if (attendanceRate >= 95 && lateCount <= 1)
+                return "Excellent";
+            if (attendanceRate >= 90 && lateCount <= 3)
+                return "Good";
+            if (attendanceRate >= 85 && lateCount <= 5)
+                return "Fair";
+            return "Poor";
         }
     }
 } 
