@@ -333,6 +333,94 @@ namespace TimeTrackX.API.Controllers
             }
         }
 
+        [HttpGet("active-employees")]
+        public async Task<ActionResult<object>> GetActiveEmployeesStatistics([FromQuery] string timeRange = "month")
+        {
+            try
+            {
+                if (!_validTimeRanges.Contains(timeRange.ToLower()))
+                {
+                    return BadRequest(new { success = false, error = "Invalid time range. Valid values are: week, month, year" });
+                }
+
+                var startDate = timeRange.ToLower() switch
+                {
+                    "week" => DateTime.UtcNow.AddDays(-7),
+                    "month" => DateTime.UtcNow.AddMonths(-1),
+                    "year" => DateTime.UtcNow.AddYears(-1),
+                    _ => throw new ArgumentException("Invalid time range")
+                };
+
+                // Get all time entries within the time range
+                var timeEntries = await _context.TimeEntries
+                    .Include(t => t.User)
+                    .Include(t => t.Project)
+                    .Where(t => t.StartTime >= startDate && t.EndTime != null)
+                    .ToListAsync();
+
+                // Calculate top employees based on hours worked
+                var topEmployees = timeEntries
+                    .GroupBy(t => new { t.UserId, t.User.Username })
+                    .Select(g => new
+                    {
+                        userId = g.Key.UserId,
+                        userName = g.Key.Username,
+                        hoursWorked = g.Sum(t => (t.EndTime.Value - t.StartTime).TotalHours),
+                        projectCount = g.Select(t => t.ProjectId).Distinct().Count(),
+                        completedTasks = g.Count()
+                    })
+                    .OrderByDescending(e => e.hoursWorked)
+                    .Take(6)
+                    .ToList();
+
+                // Calculate project distribution
+                var projectDistribution = timeEntries
+                    .GroupBy(t => t.Project.Name)
+                    .Select(g => new
+                    {
+                        name = g.Key,
+                        value = g.Count()
+                    })
+                    .OrderByDescending(p => p.value)
+                    .Take(6)
+                    .ToList();
+
+                // Calculate task completion rates
+                var taskCompletion = timeEntries
+                    .GroupBy(t => new { t.UserId, t.User.Username })
+                    .Select(g =>
+                    {
+                        var totalTasks = g.Count();
+                        var completedTasks = g.Count(t => t.EndTime != null);
+                        return new
+                        {
+                            userId = g.Key.UserId,
+                            userName = g.Key.Username,
+                            completedTasks = completedTasks,
+                            completionRate = Math.Round((double)completedTasks / totalTasks * 100, 1)
+                        };
+                    })
+                    .OrderByDescending(t => t.completionRate)
+                    .Take(5)
+                    .ToList();
+
+                return Ok(new
+                {
+                    success = true,
+                    data = new
+                    {
+                        topEmployees = topEmployees,
+                        projectDistribution = projectDistribution,
+                        taskCompletion = taskCompletion
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, error = "Error retrieving active employees statistics" });
+            }
+        }
+
         private List<DateTime> GetWorkdaysBetween(DateTime start, DateTime end)
         {
             var workDays = new List<DateTime>();

@@ -11,6 +11,7 @@ import AddDepartment from './components/admin/department/AddDepartment';
 import EmployeeHoursStatistics from './components/admin/statistics/EmployeeHoursStatistics';
 import CheckInOutTrends from './components/admin/statistics/CheckInOutTrends';
 import AttendanceStatistics from './components/admin/statistics/AttendanceStatistics';
+import ActiveEmployeesStats from './components/admin/statistics/ActiveEmployeesStats';
 
 function App() {
   return (
@@ -32,6 +33,7 @@ function App() {
           <Route path="/admin-dashboard/statistics/employee-hours" element={<EmployeeHoursStatistics />}></Route>
           <Route path="/admin-dashboard/statistics/checkin-trends" element={<CheckInOutTrends />}></Route>
           <Route path="/admin-dashboard/statistics/attendance" element={<AttendanceStatistics />}></Route>
+          <Route path="/admin-dashboard/statistics/active-employees" element={<ActiveEmployeesStats />}></Route>
         </Route>
         <Route path="/employee-dashboard" element={<EmployeeDashboard />}></Route>
       </Routes>

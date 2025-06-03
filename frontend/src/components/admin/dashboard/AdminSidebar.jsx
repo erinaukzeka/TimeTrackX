@@ -23,6 +23,9 @@ const AdminSidebar = () => {
                 <Link to="/admin-dashboard/statistics/attendance" className='block px-4 py-2 hover:bg-gray-700'>
                     Attendance & Late Arrivals
                 </Link>
+                <Link to="/admin-dashboard/statistics/active-employees" className='block px-4 py-2 hover:bg-gray-700'>
+                    Most Active Employees
+                </Link>
             </nav>
         </div>
     )
