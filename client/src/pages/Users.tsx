@@ -18,34 +18,45 @@ import {
   IconButton,
   MenuItem,
   Chip,
+  Container,
 } from '@mui/material';
 import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon } from '@mui/icons-material';
 import { User } from '../types';
 import { getUsers, createUser, updateUser, deleteUser } from '../services/api';
 import { useLoading } from '../contexts/LoadingContext';
+import axios from '../axios';
 
 const roleOptions = ['Admin', 'Employee'];
+
+interface FormData {
+  username: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  role: string;
+  password: string;
+}
 
 const Users: React.FC = () => {
   const { setIsLoading, setLoadingText } = useLoading();
   const [users, setUsers] = React.useState<User[]>([]);
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const [editingUser, setEditingUser] = React.useState<User | null>(null);
-  const [formData, setFormData] = React.useState({
+  const [formData, setFormData] = React.useState<FormData>({
     username: '',
     email: '',
     firstName: '',
     lastName: '',
     role: 'Employee',
-    password: '', // Only used for new users
+    password: '',
   });
 
   const fetchUsers = async () => {
     try {
       setIsLoading(true);
       setLoadingText('Loading users...');
-      const response = await getUsers();
-      setUsers(response);
+      const response = await axios.get<User[]>('/api/users');
+      setUsers(response.data);
     } catch (error) {
       console.error('Error fetching users:', error);
     } finally {
@@ -57,19 +68,18 @@ const Users: React.FC = () => {
     fetchUsers();
   }, []);
 
-  const handleOpenDialog = (user?: User) => {
+  const handleDialogOpen = (user?: User) => {
     if (user) {
       setEditingUser(user);
       setFormData({
         username: user.username,
         email: user.email,
-        firstName: user.firstName || '',
-        lastName: user.lastName || '',
+        firstName: user.firstName,
+        lastName: user.lastName,
         role: user.role,
         password: '',
       });
     } else {
-      setEditingUser(null);
       setFormData({
         username: '',
         email: '',
@@ -82,9 +92,25 @@ const Users: React.FC = () => {
     setDialogOpen(true);
   };
 
-  const handleCloseDialog = () => {
+  const handleDialogClose = () => {
     setDialogOpen(false);
+    setFormData({
+      username: '',
+      email: '',
+      firstName: '',
+      lastName: '',
+      role: 'Employee',
+      password: '',
+    });
     setEditingUser(null);
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>, field: keyof FormData) => {
+    const { value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [field]: value
+    }));
   };
 
   const handleSubmit = async () => {
@@ -93,18 +119,11 @@ const Users: React.FC = () => {
       setLoadingText(editingUser ? 'Updating user...' : 'Creating user...');
       
       if (editingUser) {
-        await updateUser(editingUser.id, {
-          ...formData,
-          password: formData.password || undefined, // Only update password if provided
-        });
+        await axios.put(`/api/users/${editingUser.id}`, formData);
       } else {
-        await createUser({
-          ...formData,
-          isActive: true,
-          createdAt: new Date().toISOString(),
-        });
+        await axios.post('/api/users', formData);
       }
-      handleCloseDialog();
+      handleDialogClose();
       await fetchUsers();
     } catch (error) {
       console.error('Error saving user:', error);
@@ -129,14 +148,14 @@ const Users: React.FC = () => {
   };
 
   return (
-    <Box>
+    <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
         <Typography variant="h4">Users</Typography>
         <Button
           variant="contained"
           color="primary"
           startIcon={<AddIcon />}
-          onClick={() => handleOpenDialog()}
+          onClick={() => handleDialogOpen()}
         >
           New User
         </Button>
@@ -179,7 +198,7 @@ const Users: React.FC = () => {
                 <TableCell>
                   <IconButton
                     size="small"
-                    onClick={() => handleOpenDialog(user)}
+                    onClick={() => handleDialogOpen(user)}
                     color="primary"
                   >
                     <EditIcon />
@@ -198,14 +217,14 @@ const Users: React.FC = () => {
         </Table>
       </TableContainer>
 
-      <Dialog open={dialogOpen} onClose={handleCloseDialog}>
-        <DialogTitle>{editingUser ? 'Edit User' : 'New User'}</DialogTitle>
+      <Dialog open={dialogOpen} onClose={handleDialogClose}>
+        <DialogTitle>{editingUser ? 'Edit User' : 'Add New User'}</DialogTitle>
         <DialogContent>
           <TextField
             fullWidth
             label="Username"
             value={formData.username}
-            onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleInputChange(e, 'username')}
             margin="normal"
             required
           />
@@ -214,7 +233,7 @@ const Users: React.FC = () => {
             label="Email"
             type="email"
             value={formData.email}
-            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleInputChange(e, 'email')}
             margin="normal"
             required
           />
@@ -222,14 +241,14 @@ const Users: React.FC = () => {
             fullWidth
             label="First Name"
             value={formData.firstName}
-            onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleInputChange(e, 'firstName')}
             margin="normal"
           />
           <TextField
             fullWidth
             label="Last Name"
             value={formData.lastName}
-            onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleInputChange(e, 'lastName')}
             margin="normal"
           />
           <TextField
@@ -237,28 +256,25 @@ const Users: React.FC = () => {
             fullWidth
             label="Role"
             value={formData.role}
-            onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleInputChange(e, 'role')}
             margin="normal"
             required
           >
-            {roleOptions.map((role) => (
-              <MenuItem key={role} value={role}>
-                {role}
-              </MenuItem>
-            ))}
+            <MenuItem value="Admin">Admin</MenuItem>
+            <MenuItem value="Employee">Employee</MenuItem>
           </TextField>
           <TextField
             fullWidth
-            label={editingUser ? 'New Password (optional)' : 'Password'}
+            label="Password"
             type="password"
             value={formData.password}
-            onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleInputChange(e, 'password')}
             margin="normal"
             required={!editingUser}
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleCloseDialog}>Cancel</Button>
+          <Button onClick={handleDialogClose}>Cancel</Button>
           <Button
             onClick={handleSubmit}
             variant="contained"
@@ -269,7 +285,7 @@ const Users: React.FC = () => {
           </Button>
         </DialogActions>
       </Dialog>
-    </Box>
+    </Container>
   );
 };
 

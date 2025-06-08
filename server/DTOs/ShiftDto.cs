@@ -1,15 +1,23 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using TimeTrackX.API.Models;
 
 namespace TimeTrackX.API.DTOs
 {
     public class CreateShiftDto
     {
+        [Required]
         public ShiftType Type { get; set; }
+
+        [Required]
         public TimeSpan StartTime { get; set; }
+
+        [Required]
         public TimeSpan EndTime { get; set; }
+
         public string Description { get; set; }
+
         public List<int> AssignedEmployeeIds { get; set; } = new List<int>();
     }
 
@@ -33,7 +41,7 @@ namespace TimeTrackX.API.DTOs
         public bool IsActive { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
-        public List<UserBasicInfoDto> AssignedEmployees { get; set; } = new List<UserBasicInfoDto>();
+        public List<UserDto> AssignedEmployees { get; set; }
     }
 
     public class UserBasicInfoDto

@@ -4,6 +4,8 @@ import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { LoadingProvider } from './contexts/LoadingContext';
+import { LocalizationProvider } from '@mui/x-date-pickers';
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import LoadingOverlay from './components/LoadingOverlay';
 import Layout from './components/Layout';
 import theme from './theme';
@@ -17,6 +19,7 @@ import Tasks from './pages/Tasks';
 import TimeTracking from './pages/TimeTracking';
 import Users from './pages/Users';
 import AdminStatistics from './components/AdminStatistics';
+import Shifts from './pages/Shifts';
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
     const { isAuthenticated } = useAuth();
@@ -37,54 +40,57 @@ const App: React.FC = () => {
     return (
         <ThemeProvider theme={theme}>
             <CssBaseline />
-            <AuthProvider>
-                <LoadingProvider>
-                    <LoadingOverlay />
-                    <Router>
-                        <Routes>
-                            <Route
-                                path="/login"
-                                element={
-                                    <PublicRoute>
-                                        <Login />
-                                    </PublicRoute>
-                                }
-                            />
-                            <Route
-                                path="/register"
-                                element={
-                                    <PublicRoute>
-                                        <Register />
-                                    </PublicRoute>
-                                }
-                            />
-                            <Route
-                                path="/"
-                                element={
-                                    <ProtectedRoute>
-                                        <Layout />
-                                    </ProtectedRoute>
-                                }
-                            >
-                                <Route index element={<Navigate to="/dashboard" replace />} />
-                                <Route path="dashboard" element={<Dashboard />} />
-                                <Route path="projects" element={<Projects />} />
-                                <Route path="tasks" element={<Tasks />} />
-                                <Route path="time-tracking" element={<TimeTracking />} />
-                                <Route path="users" element={<Users />} />
+            <LocalizationProvider dateAdapter={AdapterDateFns}>
+                <AuthProvider>
+                    <LoadingProvider>
+                        <LoadingOverlay />
+                        <Router>
+                            <Routes>
                                 <Route
-                                    path="admin/statistics"
+                                    path="/login"
                                     element={
-                                        <AdminRoute>
-                                            <AdminStatistics />
-                                        </AdminRoute>
+                                        <PublicRoute>
+                                            <Login />
+                                        </PublicRoute>
                                     }
                                 />
-                            </Route>
-                        </Routes>
-                    </Router>
-                </LoadingProvider>
-            </AuthProvider>
+                                <Route
+                                    path="/register"
+                                    element={
+                                        <PublicRoute>
+                                            <Register />
+                                        </PublicRoute>
+                                    }
+                                />
+                                <Route
+                                    path="/"
+                                    element={
+                                        <ProtectedRoute>
+                                            <Layout />
+                                        </ProtectedRoute>
+                                    }
+                                >
+                                    <Route index element={<Navigate to="/dashboard" replace />} />
+                                    <Route path="dashboard" element={<Dashboard />} />
+                                    <Route path="projects" element={<Projects />} />
+                                    <Route path="tasks" element={<Tasks />} />
+                                    <Route path="time-tracking" element={<TimeTracking />} />
+                                    <Route path="shifts" element={<Shifts />} />
+                                    <Route path="users" element={<Users />} />
+                                    <Route
+                                        path="admin/statistics"
+                                        element={
+                                            <AdminRoute>
+                                                <AdminStatistics />
+                                            </AdminRoute>
+                                        }
+                                    />
+                                </Route>
+                            </Routes>
+                        </Router>
+                    </LoadingProvider>
+                </AuthProvider>
+            </LocalizationProvider>
         </ThemeProvider>
     );
 };
