@@ -182,4 +182,27 @@ export const assignTask = async (id: number, userId: number | null): Promise<voi
 
 export const deleteTask = async (id: number): Promise<void> => {
     await api.delete<void>(`/tasks/${id}`);
+};
+
+// Statistics types
+export interface StatisticsResponse {
+    totalUsers: number;
+    activeUsers: number;
+    totalProjects: number;
+    activeProjects: number;
+    totalTasks: number;
+    tasksByStatus: { [key: string]: number };
+    averageTimePerProject: { [key: string]: number };
+    topUsersByHours: Array<{
+        username: string;
+        totalHours: number;
+        completedTasks: number;
+    }>;
+    shiftDistribution: { [key: string]: number };
+}
+
+// Statistics API
+export const getStatistics = async (): Promise<StatisticsResponse> => {
+    const response = await api.get<StatisticsResponse>('/statistics');
+    return response.data;
 }; 
