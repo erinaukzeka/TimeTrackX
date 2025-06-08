@@ -17,6 +17,7 @@ import {
     Assignment as TasksIcon,
     People as UsersIcon,
     BarChart as StatisticsIcon,
+    Schedule as ShiftIcon,
 } from '@mui/icons-material';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -39,6 +40,7 @@ const Sidebar = ({ open, onClose }: SidebarProps) => {
         { path: '/time-tracking', label: 'Time Tracking', icon: <TimerIcon /> },
         { path: '/projects', label: 'Projects', icon: <ProjectsIcon /> },
         { path: '/tasks', label: 'Tasks', icon: <TasksIcon /> },
+        { path: '/shifts', label: 'Shifts', icon: <ShiftIcon /> },
         ...(user?.role === 'Admin' ? [
             { path: '/users', label: 'Users', icon: <UsersIcon /> },
             { path: '/admin/statistics', label: 'Statistics', icon: <StatisticsIcon /> },

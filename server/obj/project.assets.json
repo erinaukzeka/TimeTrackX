@@ -5291,19 +5291,19 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\erzah\\.nuget\\packages\\": {}
+    "C:\\Users\\Agnesa\\.nuget\\packages\\": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\erzah\\Desktop\\LAB1\\TimeTrackX\\server\\TimeTrackX.API.csproj",
+      "projectUniqueName": "C:\\Users\\Agnesa\\OneDrive\\Desktop\\Lab1\\TimeTrackX\\server\\TimeTrackX.API.csproj",
       "projectName": "TimeTrackX.API",
-      "projectPath": "C:\\Users\\erzah\\Desktop\\LAB1\\TimeTrackX\\server\\TimeTrackX.API.csproj",
-      "packagesPath": "C:\\Users\\erzah\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\erzah\\Desktop\\LAB1\\TimeTrackX\\server\\obj\\",
+      "projectPath": "C:\\Users\\Agnesa\\OneDrive\\Desktop\\Lab1\\TimeTrackX\\server\\TimeTrackX.API.csproj",
+      "packagesPath": "C:\\Users\\Agnesa\\.nuget\\packages\\",
+      "outputPath": "C:\\Users\\Agnesa\\OneDrive\\Desktop\\Lab1\\TimeTrackX\\server\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
-        "C:\\Users\\erzah\\AppData\\Roaming\\NuGet\\NuGet.Config"
+        "C:\\Users\\Agnesa\\AppData\\Roaming\\NuGet\\NuGet.Config"
       ],
       "originalTargetFrameworks": [
         "net8.0"
@@ -5326,7 +5326,8 @@
         "enableAudit": "true",
         "auditLevel": "low",
         "auditMode": "direct"
-      }
+      },
+      "SdkAnalysisLevel": "9.0.300"
     },
     "frameworks": {
       "net8.0": {
@@ -5382,7 +5383,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.410/PortableRuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.300/PortableRuntimeIdentifierGraph.json"
       }
     }
   }

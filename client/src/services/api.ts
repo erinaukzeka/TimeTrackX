@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { User, TimeEntry, Project, ProjectTask } from '../types';
 
-const API_URL = 'http://localhost:5054/api';
+const API_URL = 'http://localhost:5000/api';
 
 // Create axios instance with default config
 const api = axios.create({
