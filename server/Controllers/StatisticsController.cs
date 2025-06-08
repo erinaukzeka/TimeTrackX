@@ -4,6 +4,7 @@ using TimeTrackX.API.Data;
 using TimeTrackX.API.DTOs;
 using System.Linq;
 using Microsoft.AspNetCore.Authorization;
+using TimeTrackX.API.Models;
 
 namespace TimeTrackX.API.Controllers
 {
@@ -16,6 +17,26 @@ namespace TimeTrackX.API.Controllers
         private readonly TimeSpan _lateThreshold = TimeSpan.FromHours(9); // 9:00 AM
         private readonly TimeSpan _absenceThreshold = TimeSpan.FromHours(12); // 12:00 PM
         private readonly string[] _validTimeRanges = new[] { "week", "month", "year" };
+
+        public class StatisticsResponse
+        {
+            public int TotalUsers { get; set; }
+            public int ActiveUsers { get; set; }
+            public int TotalProjects { get; set; }
+            public int ActiveProjects { get; set; }
+            public int TotalTasks { get; set; }
+            public Dictionary<string, int> TasksByStatus { get; set; }
+            public Dictionary<string, double> AverageTimePerProject { get; set; }
+            public List<UserProductivityStats> TopUsersByHours { get; set; }
+            public Dictionary<string, int> ShiftDistribution { get; set; }
+        }
+
+        public class UserProductivityStats
+        {
+            public string Username { get; set; }
+            public double TotalHours { get; set; }
+            public int CompletedTasks { get; set; }
+        }
 
         public StatisticsController(ApplicationDbContext context)
         {
@@ -419,6 +440,57 @@ namespace TimeTrackX.API.Controllers
             {
                 return StatusCode(500, new { success = false, error = "Error retrieving active employees statistics" });
             }
+        }
+
+        [HttpGet]
+        public async Task<ActionResult<StatisticsResponse>> GetStatistics()
+        {
+            var stats = new StatisticsResponse
+            {
+                TotalUsers = await _context.Users.CountAsync(),
+                ActiveUsers = await _context.Users.Where(u => u.IsActive).CountAsync(),
+                TotalProjects = await _context.Projects.CountAsync(),
+                ActiveProjects = await _context.Projects.Where(p => p.IsActive).CountAsync(),
+                TotalTasks = await _context.Tasks.CountAsync(),
+                TasksByStatus = await _context.Tasks
+                    .GroupBy(t => t.Status)
+                    .Select(g => new { Status = g.Key, Count = g.Count() })
+                    .ToDictionaryAsync(x => x.Status, x => x.Count),
+                AverageTimePerProject = await _context.TimeEntries
+                    .Where(te => te.EndTime != null)
+                    .GroupBy(te => te.ProjectId)
+                    .Select(g => new
+                    {
+                        ProjectId = g.Key,
+                        AverageHours = g.Average(te => 
+                            ((DateTime)te.EndTime - te.StartTime).TotalHours)
+                    })
+                    .Join(_context.Projects,
+                        avg => avg.ProjectId,
+                        proj => proj.Id,
+                        (avg, proj) => new { proj.Name, avg.AverageHours })
+                    .ToDictionaryAsync(x => x.Name, x => x.AverageHours),
+                TopUsersByHours = await _context.TimeEntries
+                    .Where(te => te.EndTime != null)
+                    .GroupBy(te => te.UserId)
+                    .Select(g => new UserProductivityStats
+                    {
+                        Username = g.Select(te => te.User.Username).FirstOrDefault(),
+                        TotalHours = g.Sum(te => 
+                            ((DateTime)te.EndTime - te.StartTime).TotalHours),
+                        CompletedTasks = _context.Tasks
+                            .Count(t => t.AssignedUserId == g.Key && t.Status == "Completed")
+                    })
+                    .OrderByDescending(x => x.TotalHours)
+                    .Take(5)
+                    .ToListAsync(),
+                ShiftDistribution = await _context.Shifts
+                    .GroupBy(s => s.Type)
+                    .Select(g => new { ShiftType = g.Key.ToString(), Count = g.Count() })
+                    .ToDictionaryAsync(x => x.ShiftType, x => x.Count)
+            };
+
+            return Ok(stats);
         }
 
         private List<DateTime> GetWorkdaysBetween(DateTime start, DateTime end)

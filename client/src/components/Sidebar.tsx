@@ -16,6 +16,7 @@ import {
     Folder as ProjectsIcon,
     Assignment as TasksIcon,
     People as UsersIcon,
+    BarChart as StatisticsIcon,
 } from '@mui/icons-material';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -40,6 +41,7 @@ const Sidebar = ({ open, onClose }: SidebarProps) => {
         { path: '/tasks', label: 'Tasks', icon: <TasksIcon /> },
         ...(user?.role === 'Admin' ? [
             { path: '/users', label: 'Users', icon: <UsersIcon /> },
+            { path: '/admin/statistics', label: 'Statistics', icon: <StatisticsIcon /> },
         ] : []),
     ];
 
