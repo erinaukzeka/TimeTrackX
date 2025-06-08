@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
 import {
   Box,
   Grid,
@@ -23,22 +22,7 @@ import {
   Cell,
   ResponsiveContainer,
 } from 'recharts';
-
-interface StatisticsResponse {
-  totalUsers: number;
-  activeUsers: number;
-  totalProjects: number;
-  activeProjects: number;
-  totalTasks: number;
-  tasksByStatus: { [key: string]: number };
-  averageTimePerProject: { [key: string]: number };
-  topUsersByHours: Array<{
-    username: string;
-    totalHours: number;
-    completedTasks: number;
-  }>;
-  shiftDistribution: { [key: string]: number };
-}
+import { getStatistics, StatisticsResponse } from '../services/api';
 
 const AdminStatistics: React.FC = () => {
   const [stats, setStats] = useState<StatisticsResponse | null>(null);
@@ -57,8 +41,8 @@ const AdminStatistics: React.FC = () => {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const response = await axios.get<StatisticsResponse>('/api/statistics');
-        setStats(response.data);
+        const response = await getStatistics();
+        setStats(response);
         setError(null);
       } catch (err) {
         setError('Failed to fetch statistics');
@@ -94,7 +78,7 @@ const AdminStatistics: React.FC = () => {
 
   const projectTimeData = Object.entries(stats.averageTimePerProject).map(([project, hours]) => ({
     project,
-    hours: Number(hours.toFixed(2)),
+    hours: parseFloat(Number(hours).toFixed(2)),
   }));
 
   const shiftData = Object.entries(stats.shiftDistribution).map(([type, count]) => ({
