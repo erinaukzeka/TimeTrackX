@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using TimeTrackX.API.Data;
 using TimeTrackX.API.Models;
@@ -9,6 +10,7 @@ namespace TimeTrackX.API.Services
     public class ShiftValidationService
     {
         private readonly ApplicationDbContext _context;
+        private readonly TimeSpan _gracePeriod = TimeSpan.FromMinutes(15);
 
         public ShiftValidationService(ApplicationDbContext context)
         {
@@ -32,17 +34,35 @@ namespace TimeTrackX.API.Services
                 return (false, "No active shift assigned for this employee.");
             }
 
-            // Allow check-in 15 minutes before shift starts and 15 minutes after shift ends
-            var gracePeriod = TimeSpan.FromMinutes(15);
-            var earliestCheckIn = shift.StartTime - gracePeriod;
-            var latestCheckIn = shift.EndTime + gracePeriod;
+            // Allow check-in within grace period before shift starts
+            var earliestCheckIn = shift.StartTime - _gracePeriod;
 
-            if (timeOfDay < earliestCheckIn || timeOfDay > latestCheckIn)
+            // For shifts that span midnight, we need to handle the time comparison differently
+            bool isShiftSpanningMidnight = shift.EndTime < shift.StartTime;
+            bool isTimeBeforeMidnight = timeOfDay <= TimeSpan.FromHours(24);
+            bool isTimeAfterMidnight = timeOfDay >= TimeSpan.Zero;
+
+            // Case 1: Normal shift (e.g., 9:00 - 17:00)
+            if (!isShiftSpanningMidnight)
             {
-                return (false, $"Time entry is outside of your scheduled shift ({shift.StartTime:hh\\:mm} - {shift.EndTime:hh\\:mm}). Please contact your supervisor if you need to work outside your scheduled hours.");
+                if (timeOfDay >= earliestCheckIn && timeOfDay <= shift.EndTime + _gracePeriod)
+                {
+                    return (true, null);
+                }
+            }
+            // Case 2: Shift spanning midnight (e.g., 22:00 - 06:00)
+            else
+            {
+                // Time is valid if it's between start time and midnight
+                // OR between midnight and end time
+                if ((timeOfDay >= earliestCheckIn && isTimeBeforeMidnight) ||
+                    (isTimeAfterMidnight && timeOfDay <= shift.EndTime + _gracePeriod))
+                {
+                    return (true, null);
+                }
             }
 
-            return (true, null);
+            return (true, $"Time entry is outside of your scheduled shift ({shift.StartTime:hh\\:mm} - {shift.EndTime:hh\\:mm}). Please contact your supervisor if you need to work outside your scheduled hours.");
         }
 
         public async Task<(bool IsValid, string ErrorMessage)> ValidateTimeEntryUpdate(int userId, DateTime? startTime, DateTime? endTime)

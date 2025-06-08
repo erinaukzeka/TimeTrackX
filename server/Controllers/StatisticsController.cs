@@ -445,52 +445,69 @@ namespace TimeTrackX.API.Controllers
         [HttpGet]
         public async Task<ActionResult<StatisticsResponse>> GetStatistics()
         {
-            var stats = new StatisticsResponse
+            try
             {
-                TotalUsers = await _context.Users.CountAsync(),
-                ActiveUsers = await _context.Users.Where(u => u.IsActive).CountAsync(),
-                TotalProjects = await _context.Projects.CountAsync(),
-                ActiveProjects = await _context.Projects.Where(p => p.IsActive).CountAsync(),
-                TotalTasks = await _context.Tasks.CountAsync(),
-                TasksByStatus = await _context.Tasks
-                    .GroupBy(t => t.Status)
-                    .Select(g => new { Status = g.Key, Count = g.Count() })
-                    .ToDictionaryAsync(x => x.Status, x => x.Count),
-                AverageTimePerProject = await _context.TimeEntries
+                // Load all necessary data upfront
+                var timeEntries = await _context.TimeEntries
+                    .Include(te => te.Project)
+                    .Include(te => te.User)
                     .Where(te => te.EndTime != null)
-                    .GroupBy(te => te.ProjectId)
-                    .Select(g => new
-                    {
-                        ProjectId = g.Key,
-                        AverageHours = g.Average(te => 
-                            ((DateTime)te.EndTime - te.StartTime).TotalHours)
-                    })
-                    .Join(_context.Projects,
-                        avg => avg.ProjectId,
-                        proj => proj.Id,
-                        (avg, proj) => new { proj.Name, avg.AverageHours })
-                    .ToDictionaryAsync(x => x.Name, x => x.AverageHours),
-                TopUsersByHours = await _context.TimeEntries
-                    .Where(te => te.EndTime != null)
-                    .GroupBy(te => te.UserId)
-                    .Select(g => new UserProductivityStats
-                    {
-                        Username = g.Select(te => te.User.Username).FirstOrDefault(),
-                        TotalHours = g.Sum(te => 
-                            ((DateTime)te.EndTime - te.StartTime).TotalHours),
-                        CompletedTasks = _context.Tasks
-                            .Count(t => t.AssignedUserId == g.Key && t.Status == "Completed")
-                    })
-                    .OrderByDescending(x => x.TotalHours)
-                    .Take(5)
-                    .ToListAsync(),
-                ShiftDistribution = await _context.Shifts
-                    .GroupBy(s => s.Type)
-                    .Select(g => new { ShiftType = g.Key.ToString(), Count = g.Count() })
-                    .ToDictionaryAsync(x => x.ShiftType, x => x.Count)
-            };
+                    .ToListAsync();
 
-            return Ok(stats);
+                var tasks = await _context.Tasks
+                    .Include(t => t.AssignedUser)
+                    .ToListAsync();
+
+                // Calculate statistics in memory
+                var stats = new StatisticsResponse
+                {
+                    TotalUsers = await _context.Users.CountAsync(),
+                    ActiveUsers = await _context.Users.Where(u => u.IsActive).CountAsync(),
+                    TotalProjects = await _context.Projects.CountAsync(),
+                    ActiveProjects = await _context.Projects.Where(p => p.IsActive).CountAsync(),
+                    TotalTasks = tasks.Count,
+                    
+                    // Calculate task status distribution
+                    TasksByStatus = tasks
+                        .GroupBy(t => t.Status)
+                        .ToDictionary(g => g.Key, g => g.Count()),
+
+                    // Calculate average time per project
+                    AverageTimePerProject = timeEntries
+                        .GroupBy(te => te.Project.Name)
+                        .ToDictionary(
+                            g => g.Key,
+                            g => g.Average(te => (te.EndTime.Value - te.StartTime).TotalHours)
+                        ),
+
+                    // Calculate top users by hours
+                    TopUsersByHours = timeEntries
+                        .GroupBy(te => new { te.UserId, te.User.Username })
+                        .Select(g => new UserProductivityStats
+                        {
+                            Username = g.Key.Username,
+                            TotalHours = g.Sum(te => (te.EndTime.Value - te.StartTime).TotalHours),
+                            CompletedTasks = tasks.Count(t => 
+                                t.AssignedUserId == g.Key.UserId && 
+                                t.Status == "Completed")
+                        })
+                        .OrderByDescending(x => x.TotalHours)
+                        .Take(5)
+                        .ToList(),
+
+                    // Calculate shift distribution
+                    ShiftDistribution = await _context.Shifts
+                        .GroupBy(s => s.Type)
+                        .Select(g => new { ShiftType = g.Key.ToString(), Count = g.Count() })
+                        .ToDictionaryAsync(x => x.ShiftType, x => x.Count)
+                };
+
+                return Ok(stats);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = "An error occurred while retrieving statistics", details = ex.Message });
+            }
         }
 
         private List<DateTime> GetWorkdaysBetween(DateTime start, DateTime end)

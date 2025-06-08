@@ -8,8 +8,6 @@ C:\Users\erina\OneDrive\Documents\GitHub\TimeTrackX\server\obj\Debug\net8.0\Time
 C:\Users\erina\OneDrive\Documents\GitHub\TimeTrackX\server\obj\Debug\net8.0\TimeTrackX.API.sourcelink.json
 C:\Users\erina\OneDrive\Documents\GitHub\TimeTrackX\server\bin\Debug\net8.0\appsettings.Development.json
 C:\Users\erina\OneDrive\Documents\GitHub\TimeTrackX\server\bin\Debug\net8.0\appsettings.json
-C:\Users\erina\OneDrive\Documents\GitHub\TimeTrackX\server\bin\Debug\net8.0\package-lock.json
-C:\Users\erina\OneDrive\Documents\GitHub\TimeTrackX\server\bin\Debug\net8.0\package.json
 C:\Users\erina\OneDrive\Documents\GitHub\TimeTrackX\server\bin\Debug\net8.0\TimeTrackX.API.exe
 C:\Users\erina\OneDrive\Documents\GitHub\TimeTrackX\server\bin\Debug\net8.0\TimeTrackX.API.deps.json
 C:\Users\erina\OneDrive\Documents\GitHub\TimeTrackX\server\bin\Debug\net8.0\TimeTrackX.API.runtimeconfig.json
@@ -788,3 +786,4 @@ C:\Users\Agnesa\OneDrive\Desktop\Lab1\TimeTrackX\server\obj\Debug\net8.0\refint\
 C:\Users\Agnesa\OneDrive\Desktop\Lab1\TimeTrackX\server\obj\Debug\net8.0\TimeTrackX.API.pdb
 C:\Users\Agnesa\OneDrive\Desktop\Lab1\TimeTrackX\server\obj\Debug\net8.0\TimeTrackX.API.genruntimeconfig.cache
 C:\Users\Agnesa\OneDrive\Desktop\Lab1\TimeTrackX\server\obj\Debug\net8.0\ref\TimeTrackX.API.dll
+C:\Users\erina\OneDrive\Documents\GitHub\TimeTrackX\server\bin\Debug\net8.0\BCrypt.Net-Next.dll

@@ -28,7 +28,9 @@ namespace TimeTrackX.API.DTOs
         public TimeSpan? EndTime { get; set; }
         public string Description { get; set; }
         public bool? IsActive { get; set; }
-        public List<int> AssignedEmployeeIds { get; set; }
+        
+        [Required]
+        public List<int> AssignedEmployeeIds { get; set; } = new List<int>();
     }
 
     public class ShiftResponseDto
