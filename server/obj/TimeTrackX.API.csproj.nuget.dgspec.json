@@ -1,20 +1,20 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\erina\\OneDrive\\Documents\\GitHub\\TimeTrackX\\server\\TimeTrackX.API.csproj": {}
+    "C:\\Users\\erzah\\Desktop\\LAB1\\TimeTrackX\\server\\TimeTrackX.API.csproj": {}
   },
   "projects": {
-    "C:\\Users\\erina\\OneDrive\\Documents\\GitHub\\TimeTrackX\\server\\TimeTrackX.API.csproj": {
+    "C:\\Users\\erzah\\Desktop\\LAB1\\TimeTrackX\\server\\TimeTrackX.API.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\erina\\OneDrive\\Documents\\GitHub\\TimeTrackX\\server\\TimeTrackX.API.csproj",
+        "projectUniqueName": "C:\\Users\\erzah\\Desktop\\LAB1\\TimeTrackX\\server\\TimeTrackX.API.csproj",
         "projectName": "TimeTrackX.API",
-        "projectPath": "C:\\Users\\erina\\OneDrive\\Documents\\GitHub\\TimeTrackX\\server\\TimeTrackX.API.csproj",
-        "packagesPath": "C:\\Users\\erina\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\erina\\OneDrive\\Documents\\GitHub\\TimeTrackX\\server\\obj\\",
+        "projectPath": "C:\\Users\\erzah\\Desktop\\LAB1\\TimeTrackX\\server\\TimeTrackX.API.csproj",
+        "packagesPath": "C:\\Users\\erzah\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\erzah\\Desktop\\LAB1\\TimeTrackX\\server\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "C:\\Users\\erina\\AppData\\Roaming\\NuGet\\NuGet.Config"
+          "C:\\Users\\erzah\\AppData\\Roaming\\NuGet\\NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net8.0"
@@ -43,6 +43,10 @@
         "net8.0": {
           "targetAlias": "net8.0",
           "dependencies": {
+            "BCrypt.Net-Next": {
+              "target": "Package",
+              "version": "[4.0.3, )"
+            },
             "Microsoft.AspNetCore.Authentication.JwtBearer": {
               "target": "Package",
               "version": "[8.0.2, )"
@@ -89,7 +93,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.409/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.410/PortableRuntimeIdentifierGraph.json"
         }
       }
     }

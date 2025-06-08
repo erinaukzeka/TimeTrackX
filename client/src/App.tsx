@@ -16,6 +16,7 @@ import Projects from './pages/Projects';
 import Tasks from './pages/Tasks';
 import TimeTracking from './pages/TimeTracking';
 import Users from './pages/Users';
+import AdminStatistics from './components/AdminStatistics';
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
     const { isAuthenticated } = useAuth();
@@ -25,6 +26,11 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 const PublicRoute = ({ children }: { children: React.ReactNode }) => {
     const { isAuthenticated } = useAuth();
     return isAuthenticated ? <Navigate to="/dashboard" /> : <>{children}</>;
+};
+
+const AdminRoute = ({ children }: { children: React.ReactNode }) => {
+    const { isAuthenticated, user } = useAuth();
+    return isAuthenticated && user?.role === 'Admin' ? <>{children}</> : <Navigate to="/dashboard" />;
 };
 
 const App: React.FC = () => {
@@ -66,6 +72,14 @@ const App: React.FC = () => {
                                 <Route path="tasks" element={<Tasks />} />
                                 <Route path="time-tracking" element={<TimeTracking />} />
                                 <Route path="users" element={<Users />} />
+                                <Route
+                                    path="admin/statistics"
+                                    element={
+                                        <AdminRoute>
+                                            <AdminStatistics />
+                                        </AdminRoute>
+                                    }
+                                />
                             </Route>
                         </Routes>
                     </Router>

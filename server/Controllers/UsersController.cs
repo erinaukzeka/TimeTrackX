@@ -5,6 +5,7 @@ using TimeTrackX.API.Data;
 using TimeTrackX.API.DTOs;
 using TimeTrackX.API.Models;
 using TimeTrackX.API.Services;
+using Microsoft.Extensions.Logging;
 
 namespace TimeTrackX.API.Controllers
 {
@@ -14,11 +15,13 @@ namespace TimeTrackX.API.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly JwtService _jwtService;
+        private readonly ILogger<UsersController> _logger;
 
-        public UsersController(ApplicationDbContext context, JwtService jwtService)
+        public UsersController(ApplicationDbContext context, JwtService jwtService, ILogger<UsersController> logger)
         {
             _context = context;
             _jwtService = jwtService;
+            _logger = logger;
         }
 
         // POST: api/Users/register
@@ -68,28 +71,47 @@ namespace TimeTrackX.API.Controllers
         [AllowAnonymous]
         public async Task<ActionResult<AuthResponseDTO>> Login(LoginDTO loginDto)
         {
-            var user = await _context.Users
-                .FirstOrDefaultAsync(u => u.Username == loginDto.Username);
-
-            if (user == null || !user.VerifyPassword(loginDto.Password))
+            try
             {
-                return Unauthorized("Invalid username or password");
+                _logger.LogInformation($"Login attempt for username: {loginDto.Username}");
+
+                var user = await _context.Users
+                    .FirstOrDefaultAsync(u => u.Username == loginDto.Username);
+
+                if (user == null)
+                {
+                    _logger.LogWarning($"Login failed - User not found: {loginDto.Username}");
+                    return Unauthorized("Invalid username or password");
+                }
+
+                if (!user.VerifyPassword(loginDto.Password))
+                {
+                    _logger.LogWarning($"Login failed - Invalid password for user: {loginDto.Username}");
+                    return Unauthorized("Invalid username or password");
+                }
+
+                if (!user.IsActive)
+                {
+                    _logger.LogWarning($"Login failed - Account is deactivated: {loginDto.Username}");
+                    return Unauthorized("Account is deactivated");
+                }
+
+                var token = _jwtService.GenerateToken(user);
+                _logger.LogInformation($"Login successful for user: {loginDto.Username}");
+
+                return new AuthResponseDTO
+                {
+                    Token = token,
+                    Username = user.Username,
+                    Role = user.Role,
+                    UserId = user.Id
+                };
             }
-
-            if (!user.IsActive)
+            catch (Exception ex)
             {
-                return Unauthorized("Account is deactivated");
+                _logger.LogError(ex, $"Error during login for user: {loginDto.Username}");
+                return StatusCode(500, "An error occurred during login");
             }
-
-            var token = _jwtService.GenerateToken(user);
-
-            return new AuthResponseDTO
-            {
-                Token = token,
-                Username = user.Username,
-                Role = user.Role,
-                UserId = user.Id
-            };
         }
 
         // GET: api/Users

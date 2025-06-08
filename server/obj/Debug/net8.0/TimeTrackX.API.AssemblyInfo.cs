@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("TimeTrackX.API")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+3f6df832d893ae06ff0eec14c5c5b2056ab3bbd3")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+de35d76f89eb6bbd979be2bf5d6a5365d9570333")]
 [assembly: System.Reflection.AssemblyProductAttribute("TimeTrackX.API")]
 [assembly: System.Reflection.AssemblyTitleAttribute("TimeTrackX.API")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
